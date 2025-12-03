@@ -67,7 +67,7 @@ pipeline {
                 script {
                     def metrics = [
                         cpu: sh(script: 'nproc', returnStdout: true).trim(),
-                        mem: sh(script: "free -m | awk '/^Mem:/ { print $2 }'", returnStdout: true).trim(),
+                        mem: sh(script: "grep MemTotal /proc/meminfo | awk '{print \$2}' | awk '{\$1=\$1/(1024^2); print \$1;}'", returnStdout: true).trim(),
                         lastBuildTime: currentBuild.duration
                     ]
                     def predPrompt = "Given CPU ${metrics.cpu} cores, RAM ${metrics.mem}GB, and last build time ${metrics.lastBuildTime}s, predict the next build time in seconds."
