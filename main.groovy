@@ -1,3 +1,6 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+
 pipeline {
     agent { label 'N3' } // or any agent with network access
 
