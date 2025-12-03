@@ -13,7 +13,7 @@ pipeline {
         stage('Checkout') {
             //steps { checkout scm }
             steps {
-                git url: 'git@github.com:girishkg/opencms-core.git', branch: 'branch_2025_4_x'
+                git url: 'git@github.com:girishkg/jasperreports.git', branch: 'h2025'
             }
 
         }
@@ -44,7 +44,7 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                sh './gradlew build test'
+                sh './gradlew bindist install'
             }
         }
 
