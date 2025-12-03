@@ -24,7 +24,7 @@ pipeline {
         }
         stage('AI Build Jasperreports') {
             steps {
-                sh 'mvn clean install source:jar javadoc:jar'
+                sh 'mvn clean install source:jar javadoc:jar -X'
             }
         }
         stage('AI Test Generation') {
@@ -52,7 +52,7 @@ pipeline {
         }
         stage('Build & Test') {
             steps {
-                sh 'mvn clean test'
+                sh 'mvn clean test -X'
             }
         }
         stage('AI Build Performance Prediction') {
