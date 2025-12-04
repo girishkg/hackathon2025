@@ -129,6 +129,7 @@ pipeline {
         }
         // Open-AI has file upload limits, so we read the log file content directly
         // and send it in the request body
+        /*
         stage('STAGE-9: Analyze with OpenAI') {
             steps {
                 script {
@@ -159,6 +160,7 @@ pipeline {
                 }
             }
         }
+        */
         stage('STAGE-10: Analyse Surefire Report with AI') {
             steps {
                 script {
