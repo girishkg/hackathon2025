@@ -22,12 +22,45 @@ pipeline {
                 git url: 'git@github.com:girishkg/jasperreports.git', branch: 'h2025'
             }
         }
-        stage('STAGE-2: AI Build Jasperreports') {
+        stage('STAGE-2: Prepare Git Diffs') {
             steps {
-                sh 'mvn clean install source:jar javadoc:jar -X'
+                script {
+                    def commitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
+                    def changedFiles = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).trim().split('\n')
+                    // ... further processing of changedFiles
+                }
             }
         }
-        stage('STAGE-3: AI Test Generation') {
+        stage('STAGE-3: AI Build Jasperreports') {
+            steps {
+                sh 'mvn clean install source:jar javadoc:jar'
+            }
+        }
+        /* 
+        stage('STAGE-4: AI Test Generation') {
+            steps {
+                script {
+                    def openaiApiKey = credentials('OPENAI_API_KEY') // Retrieve API key from Jenkins credentials
+                    def prompt = "Generate Maven test cases for the following changes: ${commitMessage}. Focus on testing the functionality related to these files: ${changedFiles.join(', ')}. Provide the test cases in Java JUnit format."
+
+                    def response = httpRequest(
+                        url: 'https://api.openai.com/v1/engines/davinci-codex/completions', // Or a more suitable model
+                        httpMode: 'POST',
+                        contentType: 'APPLICATION_JSON',
+                        customHeaders: [[name: 'Authorization', value: "Bearer ${openaiApiKey}"]],
+                        requestBody: JsonOutput.toJson([
+                            prompt: prompt,
+                            max_tokens: 500, // Adjust as needed
+                            temperature: 0.7 // Adjust for creativity vs. determinism
+                        ])
+                    )
+                    def generatedTestCases = readJSON(text: response.content).choices[0].text
+                    // ... further processing of generatedTestCases
+                }
+            }
+        }
+        */
+        stage('STAGE-4: AI Test Generation') {
             steps {
                 script {
                     def prompt = """
@@ -50,19 +83,19 @@ pipeline {
                 }
             }
         }
-        stage('STAGE-4: Build & Test') {
+        stage('STAGE-5: Build & Test') {
             steps {
-                sh 'mvn clean test -X'
+                sh 'mvn clean test'
             }
         }
-        stage('STAGE-5: Surefire Report Analysis') {
+        stage('STAGE-6: Surefire Report Analysis') {
             steps {
                 script {
                     sh 'mvn surefire-report:report'
                 }
             }
         }
-        stage('STAGE-6: AI Build Performance Prediction') {
+        stage('STAGE-7: AI Build Performance Prediction') {
             steps {
                 script {
                     def metrics = [
@@ -86,7 +119,7 @@ pipeline {
                 }
             }
         }
-        stage('STAGE-7: Generate Build Logs') {
+        stage('STAGE-8: Generate Build Logs') {
             steps {
                 script {
                     def buildLog = currentBuild.rawBuild.logFile.text
@@ -94,7 +127,9 @@ pipeline {
                 }
             }
         }
-        stage('STAGE-8: Analyze with OpenAI') {
+        // Open-AI has file upload limits, so we read the log file content directly
+        // and send it in the request body
+        stage('STAGE-9: Analyze with OpenAI') {
             steps {
                 script {
                     def logContent = readFile "build_logs_${env.BUILD_ID}.txt" // Or use the buildLog variable
@@ -124,7 +159,7 @@ pipeline {
                 }
             }
         }
-        stage('STAGE-9: Analyse Surefire Report with AI') {
+        stage('STAGE-10: Analyse Surefire Report with AI') {
             steps {
                 script {
                     def surefireReport = readFile 'target/site/surefire-report.html'
@@ -147,7 +182,7 @@ pipeline {
                 }
             }
         }
-        stage('STAGE-10: Publish AI Analysis Reports') {
+        stage('STAGE-11: Publish AI Analysis Reports') {
             steps {
                 archiveArtifacts artifacts: 'AI_Analysis_*.md', fingerprint: true
             }
