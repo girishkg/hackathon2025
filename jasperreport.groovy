@@ -60,6 +60,8 @@ pipeline {
             }
         }
         */
+        // Generate the dynamic test suite commands for AI test generation
+        // Here we generate tests for the main project class as an example
         stage('STAGE-4: AI Test Generation') {
             steps {
                 script {
@@ -193,27 +195,27 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    git config --global user.email "jenkins@example.com"
-                    git config --global user.name "Jenkins CI"
-                    git clone https://github.com/your-org/jenkinsbuildreports.git
-                    cd jenkinsbuildreports
-                    cp ../AI_Analysis_*.md .
-                    git add AI_Analysis_*.md
-                    git commit -m "Add AI analysis reports for build ${env.BUILD_ID}"
-                    git push origin main
+                        git config --global user.email "girishkg@mememe.in"
+                        git config --global user.name "Jenkins CI"
+                        git clone git@github.com:girishkg/jenkinsbuildreports.git
+                        cd jenkinsbuildreports
+                        if [ ! -d ".git" ]; then
+                            echo "Git clone failed or directory is not a git repository."
+                            exit 1
+                        elif git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+                            echo "Successfully inside the git repository."
+                            rm -f AI_Analysis_*.md
+                        else
+                            echo "Not inside a git repository."
+                            exit 1
+                        fi
+                        cp ../AI_Analysis_*.md .
+                        git add AI_Analysis_*.md
+                        git commit -m "Add AI analysis reports for build ${env.BUILD_ID}"
+                        git push origin main
                     '''
                 }
             }
         }
-        stage('STAGE-13: Cleanup Workspace') {
-            steps {
-                cleanWs()
-            }
-        }
-    }
-    post {
-        always {
-            cleanWs()
-        }
-    }  
+    } 
 }
