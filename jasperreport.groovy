@@ -189,5 +189,31 @@ pipeline {
                 archiveArtifacts artifacts: 'AI_Analysis_*.md', fingerprint: true
             }
         }
+        stage('STAGE-12: Commit AI_Analysis Reports to jenkinsbuildreports Repo') {
+            steps {
+                script {
+                    sh '''
+                    git config --global user.email "jenkins@example.com"
+                    git config --global user.name "Jenkins CI"
+                    git clone https://github.com/your-org/jenkinsbuildreports.git
+                    cd jenkinsbuildreports
+                    cp ../AI_Analysis_*.md .
+                    git add AI_Analysis_*.md
+                    git commit -m "Add AI analysis reports for build ${env.BUILD_ID}"
+                    git push origin main
+                    '''
+                }
+            }
+        }
+        stage('STAGE-13: Cleanup Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
     }
+    post {
+        always {
+            cleanWs()
+        }
+    }  
 }
