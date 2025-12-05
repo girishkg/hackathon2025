@@ -211,6 +211,7 @@ pipeline {
                     sh '''
                         git config --global user.email "girishkg@mememe.in"
                         git config --global user.name "Jenkins CI"
+                        rm -rf jenkinsbuildreports
                         git clone git@github.com:girishkg/jenkinsbuildreports.git
                         cd jenkinsbuildreports
                         if [ ! -d ".git" ]; then
