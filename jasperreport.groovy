@@ -14,6 +14,13 @@ pipeline {
     environment {
         OPENAI_API_KEY = credentials('OPEN-AI-API-KEY-ALL')
         PROJECT_NAME   = "jasperreports"
+        // Git info that Jenkins will set after checkout
+        GIT_COMMIT   = ''
+        GIT_BRANCH   = ''
+
+        // Pull webhook URLs from Jenkins credentials
+        //SLACK_WEBHOOK_URL = credentials('slack-webhook-id')   // <-- replace with your ID
+        TEAMS_WEBHOOK_URL = credentials('teams-webhook-id')   // <-- replace with your ID
     }
     stages {
         stage('STAGE-1: Checkout') {
@@ -194,7 +201,7 @@ pipeline {
         stage('STAGE-12: Commit AI_Analysis Reports to jenkinsbuildreports Repo') {
             steps {
                 script {
-                    BUILD_ID = env.BUILD_ID
+                    BUILD_ID = env.BUILD_NUMBER
                     sh '''
                         git config --global user.email "girishkg@mememe.in"
                         git config --global user.name "Jenkins CI"
@@ -215,6 +222,28 @@ pipeline {
                         git commit -m "Add AI analysis reports for build ${env.BUILD_ID}"
                         git push origin main
                     '''
+                }
+            }
+        }
+        // Always Post stage to send teams channel notification
+        post {
+            always {
+                script {
+                    def buildStatus = currentBuild.currentResult
+                    def buildUrl = env.BUILD_URL
+                    def message = "Jenkins Build #${env.BUILD_ID} for project ${PROJECT_NAME} completed with status: ${buildStatus}. View details at: ${buildUrl}, Build Commit: ${GIT_COMMIT}, Branch: ${GIT_BRANCH}, Build Time Prediction stage included, AI-generated tests stage included, Surefire report analyzed by AI, AI analysis reports archived and committed to jenkinsbuildreports repo, Approve PR: PR link here. DENY PR: DENY link here."
+
+                    def teamsPayload = JsonOutput.toJson([
+                        title: "Jenkins Build Notification",
+                        text : message
+                    ])
+
+                    httpRequest(
+                        httpMode: 'POST',
+                        url: TEAMS_WEBHOOK_URL,
+                        contentType: 'APPLICATION_JSON',
+                        requestBody: teamsPayload
+                    )
                 }
             }
         }
