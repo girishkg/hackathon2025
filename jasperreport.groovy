@@ -224,7 +224,7 @@ pipeline {
         }
         stage('Archive Analysis Reports') {
             steps {
-                archiveArtifacts artifacts: 'AI_Analysis_*.md', 'target/site/surefire-report.html', fingerprint: true
+                archiveArtifacts artifacts: 'AI_Analysis_*.md, target/site/surefire-report.html', fingerprint: true
             }
         }
         stage('Commit Analysis Reports to jenkinsbuildreports Repo') {
