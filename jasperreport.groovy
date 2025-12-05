@@ -194,6 +194,7 @@ pipeline {
         stage('STAGE-12: Commit AI_Analysis Reports to jenkinsbuildreports Repo') {
             steps {
                 script {
+                    BUILD_ID = env.BUILD_ID
                     sh '''
                         git config --global user.email "girishkg@mememe.in"
                         git config --global user.name "Jenkins CI"
