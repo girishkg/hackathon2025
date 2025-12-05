@@ -23,6 +23,13 @@ pipeline {
         TEAMS_WEBHOOK_URL = credentials('teams-webhook-id')   // <-- replace with your ID
     }
     stages {
+        /*
+        stage('Clean Workspace') {
+            steps {
+                deleteDir()
+            }
+        }
+        */
         stage('Checkout') {
             //steps { checkout scm }
             steps {
@@ -217,7 +224,7 @@ pipeline {
         }
         stage('Archive Analysis Reports') {
             steps {
-                archiveArtifacts artifacts: 'AI_Analysis_*.md', fingerprint: true
+                archiveArtifacts artifacts: 'AI_Analysis_*.md', 'target/site/surefire-report.html', fingerprint: true
             }
         }
         stage('Commit Analysis Reports to jenkinsbuildreports Repo') {
