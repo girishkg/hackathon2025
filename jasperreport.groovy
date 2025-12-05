@@ -29,7 +29,7 @@ pipeline {
                 git url: 'git@github.com:girishkg/jasperreports.git', branch: 'h2025'
             }
         }
-        stage('STAGE-2: Prepare Git Diffs') {
+        stage('Prepare Git Diffs') {
             steps {
                 script {
                     def commitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
