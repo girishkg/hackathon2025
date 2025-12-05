@@ -217,9 +217,10 @@ pipeline {
                             echo "Not inside a git repository."
                             exit 1
                         fi
+                        rm -f AI_Analysis_*.md
                         cp ../AI_Analysis_*.md .
                         git add AI_Analysis_*.md
-                        git commit -m "Add AI analysis reports for build ${env.BUILD_ID}"
+                        git commit -m "Add AI analysis reports for build ${env.BUILD_NUMBER} of project ${PROJECT_NAME}"
                         git push origin main
                     '''
                 }
