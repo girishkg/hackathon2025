@@ -23,7 +23,7 @@ pipeline {
         TEAMS_WEBHOOK_URL = credentials('teams-webhook-id')   // <-- replace with your ID
     }
     stages {
-        stage('STAGE-1: Checkout') {
+        stage('Checkout') {
             //steps { checkout scm }
             steps {
                 git url: 'git@github.com:girishkg/jasperreports.git', branch: 'h2025'
@@ -44,7 +44,8 @@ pipeline {
                 }
             }
         }
-        stage('STAGE-3: AI Build Jasperreports') {
+        // AI Based Delta builds
+        stage('Maven Build Jasperreports') {
             steps {
                 sh 'mvn clean install source:jar javadoc:jar'
             }
@@ -90,7 +91,7 @@ pipeline {
         */
         // Generate the dynamic test suite commands for AI test generation
         // Here we generate tests for the main project class as an example
-        stage('STAGE-4: AI Test Generation') {
+        stage('AI Test Generation') {
             steps {
                 script {
                     def prompt = """
@@ -113,19 +114,19 @@ pipeline {
                 }
             }
         }
-        stage('STAGE-5: Build & Test') {
+        stage('Build & Test') {
             steps {
                 sh 'mvn clean test'
             }
         }
-        stage('STAGE-6: Surefire Report Analysis') {
+        stage('Surefire Report Analysis') {
             steps {
                 script {
                     sh 'mvn surefire-report:report'
                 }
             }
         }
-        stage('STAGE-7: AI Build Performance Prediction') {
+        stage('AI Build Performance Prediction') {
             steps {
                 script {
                     def metrics = [
@@ -149,7 +150,7 @@ pipeline {
                 }
             }
         }
-        stage('STAGE-8: Generate Build Logs') {
+        stage('Generate Build Logs') {
             steps {
                 script {
                     def buildLog = currentBuild.rawBuild.logFile.text
@@ -191,7 +192,7 @@ pipeline {
             }
         }
         */
-        stage('STAGE-10: Analyse Surefire Report with AI') {
+        stage('AI Analyse Surefire Report') {
             steps {
                 script {
                     def surefireReport = readFile 'target/site/surefire-report.html'
@@ -214,12 +215,12 @@ pipeline {
                 }
             }
         }
-        stage('STAGE-11: Publish AI Analysis Reports') {
+        stage('Archive Analysis Reports') {
             steps {
                 archiveArtifacts artifacts: 'AI_Analysis_*.md', fingerprint: true
             }
         }
-        stage('STAGE-12: Commit AI_Analysis Reports to jenkinsbuildreports Repo') {
+        stage('Commit Analysis Reports to jenkinsbuildreports Repo') {
             steps {
                 script {
                     BUILD_ID = env.BUILD_NUMBER
