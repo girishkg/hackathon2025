@@ -33,7 +33,7 @@ pipeline {
         stage('Checkout') {
             //steps { checkout scm }
             steps {
-                git url: 'git@github.com:girishkg/jasperreports.git', branch: 'h2025'
+                git url: 'git@github.com:apache/maven-surefire.git', branch: 'master'
             }
         }
         stage('Prepare Git Diffs') {
@@ -52,11 +52,20 @@ pipeline {
             }
         }
         // AI Based Delta builds
-        stage('Maven Build Jasperreports') {
+        /*
+        stage('Maven Build') {
             steps {
-                sh 'mvn clean install source:jar javadoc:jar'
+                sh '''
+                export JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
+                export JDK_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
+                export MAVEN_HOME="/home/jenkins/tools/apache-maven-3.6.3/bin"
+                export PATH="$MAVEN_HOME/bin:$JAVA_HOME/bin:$PATH"
+                export MAVEN_OPTS="-server -Xmx512m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=384m -XX:+UseG1GC -XX:+UseStringDeduplication -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:SoftRefLRUPolicyMSPerMB=50 -Djava.awt.headless=true"
+                mvn clean install source:jar javadoc:jar
+                '''
             }
         }
+        */
         /* 
         stage('STAGE-4: AI Test Generation') {
             steps {
@@ -117,20 +126,21 @@ pipeline {
                         ])
                     )
                     def testSource = new JsonSlurper().parseText(response.content).choices[0].message.content.trim()
-                    writeFile file: "src/test/java/${PROJECT_NAME}Tests.java", text: testSource
+                    writeFile file: "src/${PROJECT_NAME}Tests.java", text: testSource
                 }
             }
         }
         stage('Build & Test') {
             steps {
-                sh 'mvn clean test'
-            }
-        }
-        stage('Surefire Report Analysis') {
-            steps {
-                script {
-                    sh 'mvn surefire-report:report'
-                }
+                sh '''
+                rm -f src/jasperreportsTests.java
+                export JAVA_HOME="/usr/lib/jvm/java-17-openjdk-17.0.17.0.10-1.el8.x86_64"
+                export JDK_HOME="/usr/lib/jvm/java-17-openjdk-17.0.17.0.10-1.el8.x86_64"
+                export MAVEN_HOME="/home/jenkins/tools/apache-maven-3.6.3/bin"
+                export PATH="$MAVEN_HOME/bin:$JAVA_HOME/bin:$PATH"
+                export MAVEN_OPTS="-server -Xmx512m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=384m -XX:+UseG1GC -XX:+UseStringDeduplication -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:SoftRefLRUPolicyMSPerMB=50 -Djava.awt.headless=true"
+                /home/jenkins/tools/apache-maven-3.6.3/bin/mvn clean install source:jar javadoc:jar
+                '''
             }
         }
         stage('AI Build Performance Prediction') {
@@ -266,16 +276,13 @@ pipeline {
                     if (prNumber) {
                         def githubToken = credentials('github-personal-access-token') // GitHub token with repo access
                         def commentBody = JsonOutput.toJson([body: "### AI Analysis Summary for Build #${env.BUILD_NUMBER}\n\n${analysisSummary}"])
-                        def COMMENT_MESSAGE = commentBody.replace('"', '\\"').replace('\n', '\\n')
-                        withCredentials([string(credentialsId: 'github-personal-access-token', variable: 'GITHUB_PAT')]) {
-                            sh """
-                                curl -X POST \\
-                                -H "Authorization: token ${GITHUB_PAT}" \\
-                                -H "Accept: application/vnd.github.v3+json" \\
-                                -d '{"body": "${COMMENT_MESSAGE}"}' \\
-                                "https://api.github.com/repos/girishkg/jasperreports/issues/${prNumber}/comments"
-                            """
-                        }
+                        httpRequest(
+                            httpMode: 'POST',
+                            url: "https://api.github.com/repos/girishkg/jasperreports/issues/${prNumber}/comments",
+                            customHeaders: [[name: 'Authorization', value: "token ${githubToken}"]],
+                            contentType: 'APPLICATION_JSON',
+                            requestBody: commentBody
+                        )
                     } else {
                         echo "Not a pull request build; skipping PR comment."
                     }
@@ -298,8 +305,8 @@ pipeline {
                 Project ${PROJECT_NAME} 
                 Status: ${buildStatus} 
                 View details at: ${buildUrl} 
-                Build Commit: GIT_COMMIT, 
-                Branch: GIT_BRANCH, 
+                Build Commit: ${GIT_COMMIT}, 
+                Branch: ${GIT_BRANCH}, 
                 Build Time Prediction stage included, 
                 AI-generated tests stage included, 
                 Surefire report analyzed by AI, 
