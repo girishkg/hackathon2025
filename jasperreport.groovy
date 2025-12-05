@@ -72,6 +72,21 @@ pipeline {
                 }
             }
         }
+        // Dynamically generate AI Prompt for test cases based on changed files
+        def dynamicPrompt = "Generate 5 unit tests for the following changed files: ${changedFiles.join(', ')}. Use JUnit5, cover edge cases. Output only the test class source code."
+        // Send request to OpenAI API to generate test cases
+        def aiResponse = httpRequest(
+            httpMode: 'POST',
+            url: 'https://api.openai.com/v1/chat/completions',
+            customHeaders: [[name: 'Authorization', value: "Bearer ${env.OPENAI_API_KEY}"]],
+            contentType: 'APPLICATION_JSON',
+            requestBody: JsonOutput.toJson([
+                model: "gpt-4o-mini",
+                messages: [[role: 'user', content: dynamicPrompt]]
+            ])
+        )
+        def testSourceCode = new JsonSlurper().parseText(aiResponse.content).choices[0].message.content.trim()
+        // Write the generated test cases to appropriate test files
         */
         // Generate the dynamic test suite commands for AI test generation
         // Here we generate tests for the main project class as an example
@@ -227,7 +242,7 @@ pipeline {
                         rm -f AI_Analysis_*.md
                         cp ../AI_Analysis_*.md .
                         git add AI_Analysis_*.md
-                        git commit -m "Add AI analysis reports for build ${env.BUILD_NUMBER} of project ${PROJECT_NAME}"
+                        git commit -m "Add AI analysis reports for build of project:  AI-JASPERREPORT-BUILD"
                         git push origin main
                     '''
                 }
