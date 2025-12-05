@@ -289,7 +289,7 @@ pipeline {
                 def GIT_COMMIT = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
                 def GIT_BRANCH = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                 def GITHUB_URL = sh(script: 'git config --get remote.origin.url', returnStdout: true).trim()
-                def message = "
+                def message = """
                 -----------------------------------------------------
                 Jenkins Build #${env.BUILD_ID} 
                 Project ${PROJECT_NAME} 
@@ -305,7 +305,7 @@ pipeline {
                 -----------------------------------------------------
                 Approve PR: PR link here. 
                 DENY PR: DENY link here.
-                -----------------------------------------------------"
+                -----------------------------------------------------"""
 
                 def teamsPayload = JsonOutput.toJson([
                     title: "Jenkins Build Notification",
