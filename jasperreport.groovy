@@ -256,6 +256,29 @@ pipeline {
                 }
             }
         }
+        //Add comment to Pull request with analysis summary
+        stage('Comment on Pull Request with Analysis Summary') {
+            steps {
+                script {
+                    def analysisSummary = readFile 'AI_Analysis_Surefire_Report.md'
+                    //def prNumber = env.CHANGE_ID // Jenkins sets this for PR builds
+                    def prNumber = 1 //Hard coded for testing
+                    if (prNumber) {
+                        def githubToken = credentials('github-personal-access-token') // GitHub token with repo access
+                        def commentBody = JsonOutput.toJson([body: "### AI Analysis Summary for Build #${env.BUILD_NUMBER}\n\n${analysisSummary}"])
+                        httpRequest(
+                            httpMode: 'POST',
+                            url: "https://api.github.com/repos/girishkg/jasperreports/issues/${prNumber}/comments",
+                            customHeaders: [[name: 'Authorization', value: "token ${githubToken}"]],
+                            contentType: 'APPLICATION_JSON',
+                            requestBody: commentBody
+                        )
+                    } else {
+                        echo "Not a pull request build; skipping PR comment."
+                    }
+                }
+            }
+        }
     }
     // Always Post stage to send teams channel notification
     post {
@@ -263,7 +286,26 @@ pipeline {
             script {
                 def buildStatus = currentBuild.currentResult
                 def buildUrl = env.BUILD_URL
-                def message = "Jenkins Build #${env.BUILD_ID} for project ${PROJECT_NAME} completed with status: ${buildStatus}. View details at: ${buildUrl}, Build Commit: GIT_COMMIT, Branch: GIT_BRANCH, Build Time Prediction stage included, AI-generated tests stage included, Surefire report analyzed by AI, AI analysis reports archived and committed to jenkinsbuildreports repo, Approve PR: PR link here. DENY PR: DENY link here."
+                def GIT_COMMIT = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                def GIT_BRANCH = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                def GITHUB_URL = sh(script: 'git config --get remote.origin.url', returnStdout: true).trim()
+                def message = "
+                -----------------------------------------------------
+                Jenkins Build #${env.BUILD_ID} 
+                Project ${PROJECT_NAME} 
+                Status: ${buildStatus} 
+                View details at: ${buildUrl} 
+                Build Commit: GIT_COMMIT, 
+                Branch: GIT_BRANCH, 
+                Build Time Prediction stage included, 
+                AI-generated tests stage included, 
+                Surefire report analyzed by AI, 
+                AI analysis reports archived and committed to jenkinsbuildreports repo, 
+                Github Repo: ${GITHUB_URL}
+                -----------------------------------------------------
+                Approve PR: PR link here. 
+                DENY PR: DENY link here.
+                -----------------------------------------------------"
 
                 def teamsPayload = JsonOutput.toJson([
                     title: "Jenkins Build Notification",
