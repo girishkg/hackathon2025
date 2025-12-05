@@ -239,7 +239,7 @@ pipeline {
             script {
                 def buildStatus = currentBuild.currentResult
                 def buildUrl = env.BUILD_URL
-                def message = "Jenkins Build #${env.BUILD_ID} for project ${PROJECT_NAME} completed with status: ${buildStatus}. View details at: ${buildUrl}, Build Commit: ${GIT_COMMIT}, Branch: ${GIT_BRANCH}, Build Time Prediction stage included, AI-generated tests stage included, Surefire report analyzed by AI, AI analysis reports archived and committed to jenkinsbuildreports repo, Approve PR: PR link here. DENY PR: DENY link here."
+                def message = "Jenkins Build #${env.BUILD_ID} for project ${PROJECT_NAME} completed with status: ${buildStatus}. View details at: ${buildUrl}, Build Commit: GIT_COMMIT, Branch: GIT_BRANCH, Build Time Prediction stage included, AI-generated tests stage included, Surefire report analyzed by AI, AI analysis reports archived and committed to jenkinsbuildreports repo, Approve PR: PR link here. DENY PR: DENY link here."
 
                 def teamsPayload = JsonOutput.toJson([
                     title: "Jenkins Build Notification",
