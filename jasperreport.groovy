@@ -34,6 +34,12 @@ pipeline {
                 script {
                     def commitMessage = sh(script: 'git log -1 --pretty=%B', returnStdout: true).trim()
                     def changedFiles = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).trim().split('\n')
+                    def filteredFiles = changedFiles.findAll { it.endsWith('.java') || it.endsWith('.xml') || it.endsWith('.properties') }
+                    def uniqueFiles = filteredFiles.unique()
+                    changedFiles = uniqueFiles
+                    def GIT_COMMIT = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                    def GIT_BRANCH = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    echo "Commit Message: ${commitMessage}"
                     // ... further processing of changedFiles
                 }
             }
